@@ -18,8 +18,6 @@ public fun create_box<T: store>(value: T,  ctx: &mut TxContext){
 
 ```
 
-
-
 - [ ] Call create_box to create a box
 
 ```
