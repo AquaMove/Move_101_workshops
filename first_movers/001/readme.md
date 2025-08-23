@@ -1,7 +1,8 @@
 # Basic Information
 
-Sui Wallet Address: 
-Github: 
+* Sui Wallet Address: 
+
+* Github: 
 
 
 # Personal Introduction 
