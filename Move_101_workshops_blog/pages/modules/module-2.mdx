@@ -332,7 +332,83 @@ public fun add_sugar(coffee: &mut Coffee, quantity: u64) {
 
 ## Fungible Tokens on Sui
 
+Nội dung tiếp theo chúng ta sẽ nói về Fungible Tokens trên Sui. việc xây dựng và quản lý token fungible (có thể thay thế) trở nên đơn giản nhờ **Sui Framework.**
 
+Các developer có thể tận dụng những modules sẵn có trong framework để tạo token theo nhu cầu riêng. Một số modules tiêu biểu bao gồm:
+
+* Coin: cho phép khởi tạo và quản lý các loại token fungible mới, với đầy đủ metadata như tên, ký hiệu, số thập phân và tổng cung.
+* Transfer: hỗ trợ việc chuyển token giữa các tài khoản, đảm bảo tính an toàn và chuẩn mực trong hệ thống.
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreidruxv5znmvvghwfiwe2tlx6znveehewghu5qtuurd5bijkcfshma)
+
+
+Tuy nhiên để hiểu được kiến thức này các bạn sẽ cần biết về:
+* Generics
+* The Witness Design Pattern
+* Capability Design Pattern
+* Sui Coin
+
+### Generics (kiểu tham số) trong Sui Move
+
+Trong Sui Move, generics là các kiểu tham số trừu tượng dùng thay thế cho các kiểu cụ thể, giúp tạo ra các cấu trúc và hàm dùng lại được cho nhiều loại dữ liệu khác nhau. 
+
+Ví dụ, một cấu trúc Box đơn giản chỉ chứa u64 sẽ chỉ dùng được với số nguyên 64 bit để có thể chứa bất kỳ kiểu dữ liệu nào, Sui Move khai báo `Box<T>` như sau:
+
+
+```
+module generics::storage {
+    public struct Box<T> {
+        value: T
+    }
+}
+```
+
+
+Bạn cũng có thể đặt ràng buộc về khả năng (ability constraints) lên kiểu tham số để đảm bảo nội dung bên trong có những quyền cần thiết. Ví dụ, nếu Box có quyền key và store, thì kiểu T cũng phải có quyền store, nhưng có thể có thêm quyền drop. Việc sử dụng generics trong hàm cũng tương tự, hàm `create_box<T>(value: T): Box<T>` trả về một hộp chứa giá trị có kiểu tùy ý.
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreidmfoytmdpqpddqwhbs324wete6wbfsc2k5s6kszagnn3ef636n6q)
+
+
+### Witness pattern 
+
+Witness là mẫu thiết kế dùng để đảm bảo một loại tài nguyên chỉ được khởi tạo một lần. Ý tưởng là tạo ra một tài nguyên tạm thời (witness) có thể bị drop ngay sau khi sử dụng. Khi truyền witness vào hàm tạo, witness bị drop nên không thể tái sử dụng, nhờ đó bảo đảm rằng kiểu A chỉ có một instance duy nhất.
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreihvknf2en2yuab2hp7tf6xsnghmlnlg2jggtugmt4shhrwqrymibm)
+
+Ví dụ, `Guardian<T>` chỉ được tạo khi truyền vào một witness `PEACE`; witness này có ability drop và bị tiêu thụ ngay trong hàm tạo.
+
+Trong trường hợp **One Time Witness (OTW)**, witness được tạo trong hàm init của module để đảm bảo chỉ có một instance của kiểu đó trên toàn mạng. Để tránh yêu cầu witness phải có thêm các ability của kiểu bao ngoài, Move sử dụng từ khóa phantom để nới lỏng ràng buộc ability.
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreiei766ejurgcbft2kxn3vgtg4rj4eq6aivanqxlnm33vvgp3xwyda)
+
+
+### Capability Design Pattern là gì?
+
+Capability Design Pattern là một mẫu thiết kế cho phép ủy quyền (authorize) hành động thông qua việc sở hữu một đối tượng đặc biệt gọi là capability object. Thay vì kiểm tra vai trò (role) hay quyền (permission) bằng logic phức tạp, hệ thống sẽ dựa vào việc một thực thể có nắm giữ đối tượng “khả năng” (capability) hay không.
+
+
+*  Mỗi hành động nhạy cảm (ví dụ: xóa dữ liệu, quản trị hệ thống) được gắn với một capability object.
+*  Chỉ những ai sở hữu đối tượng này mới có quyền thực hiện hành động tương ứng.
+*  Điều này giúp hệ thống trở nên an toàn, rõ ràng, và dễ mở rộng hơn, vì quyền được gắn liền trực tiếp với object thay vì phân tán trong logic.
+
+Trong code của bạn: 
+
+```
+// Only admin has AdminCap object
+struct AdminCap has key {
+    id: UID
+}
+```
+
+* AdminCap là capability object.
+* Chỉ người dùng quản trị (admin) mới giữ AdminCap.
+* Nếu một hàm (function) yêu cầu truyền vào AdminCap làm tham số, thì chỉ admin mới gọi được, vì chỉ họ có đối tượng đó.
+
+
+
+# Exercise 
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafybeid7dsbvdsuxv5f6lcy3ra5lpgsuv4y7tm5sevr6dklhouxcrpus4e)
 
 
 
