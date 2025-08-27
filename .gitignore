@@ -1,0 +1,147 @@
+
+# Dependency directories
+**/node_modules/
+**/.pnp/
+**/.pnp.js
+
+# Build outputs
+**/.next/
+**/out/
+**/build/
+**/dist/
+
+# Compiled files
+**/*.class
+**/*.dll
+**/*.exe
+**/*.o
+**/*.so
+
+# Logs and debug files
+**/logs/
+**/*.log
+**/*.log.*
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# Environment files
+**/.env
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+
+# IDE and editor files
+**/.idea/
+**/.vscode/
+**/*.swp
+**/*.swo
+**/*~
+**/*.sublime-workspace
+**/*.sublime-project
+
+# OS generated files
+**/.DS_Store
+**/.DS_Store?
+**/._*
+**/.Spotlight-V100
+**/.Trashes
+**/ehthumbs.db
+**/Thumbs.db
+
+# Temporary and cache files
+**/.tmp/
+**/.temp/
+**/*.tmp
+**/*.bak
+**/*.cache
+**/.cache/
+
+# Package lock files (optional, depends on workflow)
+**/package-lock.json
+**/yarn.lock
+**/pnpm-lock.yaml
+
+# TypeScript
+**/*.tsbuildinfo
+**/next-env.d.ts
+
+# Webpack and bundler cache
+**/.next/cache/webpack/
+**/.next/static/webpack/
+**/.next/static/chunks/
+
+# Hot update files
+**/*.hot-update.js
+**/*.hot-update.json
+
+# Large binary files
+**/*.bin
+**/*.zip
+**/*.tar
+**/*.tar.gz
+**/*.rar
+
+# Vercel
+**/.vercel
+
+# Move specific
+**/*.mv
+**/*.mvd
+**/build/
+**/bytecode_modules/
+**/debug_info/
+
+# Specific project exclusions
+Move_101_workshops_blog/node_modules/@next/swc-darwin-arm64/next-swc.darwin-arm64.node
+Move_101_workshops_blog/.next/cache/webpack/client-development/*.pack.gz
+Move_101_workshops_blog/.next/cache/webpack/client-production/*.pack
+
+# Backup and system files
+**/*.bak
+**/*.gho
+**/*.ori
+**/*.orig
+**/*.tmp
+**/Network Trash Folder
+**/Temporary Items
+**/.apdisk
+
+# Local history and other IDE artifacts
+**/.history/
+**/.ionide/
+**/.vs/
+**/.gradle/
+**/.settings/
+
+# Miscellaneous
+**/*.seed
+**/*.pid
+**/*.pid.lock
+**/.grunt
+**/bower_components/
+**/.lock-wscript
+**/lib-cov
+**/*.lcov
+**/.nyc_output
+**/jspm_packages/
+**/.rpt2_cache/
+**/.rts2_cache_cjs/
+**/.rts2_cache_es/
+**/.rts2_cache_umd/
+**/.node_repl_history
+**/*.tgz
+**/.yarn-integrity
+**/.parcel-cache/
+**/.nuxt/
+**/.vuepress/dist
+**/.serverless/
+**/.fusebox/
+**/.dynamodb/
+**/.tern-port
+**/.yarn/cache
+**/.yarn/unplugged
+**/.yarn/build-state.yml
+**/.yarn/install-state.gz
+**/.pnp.*

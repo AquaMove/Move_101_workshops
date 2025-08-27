@@ -1,0 +1,334 @@
+---
+title: 'Module 1: Hello World'
+description: 'Làm quen với cấu trúc module Move cơ bản và cách tạo object đầu tiên'
+---
+
+
+
+# Module 1: Hello World
+
+Chào mừng đến với Move module! Trong module này, bạn sẽ học các khái niệm cơ bản của Sui Move development bằng cách tạo một ứng dụng "Hello World" đơn giản.
+
+
+## 🎯 Learning Objectives
+- Tổng quan về Sui Blockchain - kiến trúc, hiệu suất và điểm khác biệt
+- Giới thiệu về Move - ngôn ngữ hướng đối tượng với ownership model.
+- Các khái niệm chính: objects, modules, functions
+- Cài đặt Sui CLI và viết module đầu tiên: "Hello Move"
+
+## 📚 Các khái niệm chính
+
+> Blockchain problems vs Language problems - và vì sao Sui Move quan trọng? 
+
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreig2ktgvauo6we3s64lp57xwtxkxmczifsjwlnmnbs6kpnwyz4wakm)
+
+Khi nói đến blockchain, đa phần chúng ta thường nhắc đến những vấn đề nằm ngay trong hạ tầng chain gọi là `blockchain-centric problems`. Đây là những giới hạn thuộc về chính cái nền mà dApps chạy trên đó.
+
+Ví dụ: blockchain có thể không scale được, chi phí vận hành cao, và thông lượng giao dịch chậm
+
+Tuy nhiên, đó mới chỉ là một nửa bức tranh. Có một nhóm vấn đề khác ít được chú ý hơn, nhưng lại ảnh hưởng trực tiếp đến developer và user là **language problems**. Đây không phải vấn đề của chain, mà là vấn đề đến từ **ngôn ngữ lập trình mà blockchain hiểu và cho phép viết smart contract.**
+
+
+Ví dụ điển hình là **Solidity**. Nó đủ mạnh để xây dựng toàn bộ DeFi ecosystem ngày nay, nhưng lại mang theo những hạn chế:
+
+* Dễ mắc bug liên quan đến state và asset handling.
+* Developer phải tự code và kiểm soát những cơ chế quan trọng (như reentrancy guard, overflow check), thay vì ngôn ngữ hỗ trợ từ đầu.
+
+
+Điều đáng chú ý là blockchain dev không trực tiếp “build blockchain”, họ build smart contract. Và smart contract chính là **interface giữa blockchain và người dùng cuối**. Vì vậy, nếu ngôn ngữ kém an toàn thì contract dễ bị khai thác và như vậy hệ sinh thái sẽ ảnh hưởng rất nhiều.
+
+Đây chính là lý do tại sao **Sui Move trở nên đặc biệt**. Move, ngôn ngữ gốc từ dự án Diem (Facebook), được thiết kế với mục tiêu đầu tiên là asset safety. Thay vì để developer phải tự lo tất cả edge cases, Move đưa ra một paradigm mới: **resource-oriented programming.**
+
+
+![](https://cdn.prod.website-files.com/6425f546844727ce5fb9e5ab/65c54eacc3489e9b0f765291_Group%202147256464.webp)
+
+
+## Why Sui? From Traditional Blockchain Problems to Object-Centric Design
+
+Khi nói về blockchain truyền thống, hãy hình dung một ngôi nhà với nhiều căn phòng. Về lý thuyết, các căn phòng này có thể hoạt động độc lập, nhưng thực tế thì… **chỉ một người có thể bước vào nhà tại một thời điểm**. Người đó dù chỉ dùng một phòng, nhưng lại khóa toàn bộ căn nhà. Kết quả: tất cả những người khác phải xếp hàng chờ đợi **mọi thứ xử lý tuần tự (sequential)**. Đây chính là vấn đề căn bản của **traditional blockchains** là throughput thấp, hiệu năng bị giới hạn vì transaction phải chạy nối đuôi nhau.
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafybeiafclq4pq3dkfga3mxn2jutmdfnzcxg36jt7fs3xuwmvevwngdtge)
+
+Nhưng giờ thử nghĩ về một cách tiếp cận mới là một **“ngôi nhà blockchain” cho phép nhiều người cùng bước vào cùng lúc**. Người A sử dụng phòng A, người B sử dụng phòng B song song (in parallel), không ai cần đợi ai:
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreigygc3yyirmd6veetzuxkxlicihmfrv2msplz2vcfscqah4qiud5e)
+
+Sui áp dụng cơ chế này ở tầng core, cho phép transaction không chạm nhau (disjoint objects) được xử lý đồng thời. Điều này giúp hệ thống đạt được high throughput mà không đánh đổi tính bảo mật hay an toàn dữ liệu.
+
+Nhưng Sui không dừng lại ở việc xử lý song song. Mà còn đi xa hơn với thiết kế: **Everything on Sui is Object.**. Trên Sui, object là first-class citizen. Tất cả từ token, NFT, cho đến game items đều được mô hình hóa như objects với các thuộc tính riêng, dữ liệu riêng, và quan trọng nhất là **ownership rõ ràng**.
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreigbdugwc37zfgunofslnju5jej3ymxcmjictcemon5nk53zmc2lsy)
+
+
+
+Và nếu bạn thắc mắc về cách mà Assets trong sui move worksh như thế nào: [https://x.tusky.io/Zoo9i](https://x.tusky.io/Zoo9i)
+
+
+Chính mô hình lấy object làm trung tâm này đã mở ra những tiềm năng đặc biệt là với NFT. Như trong slide trình bày, cách tiếp cận của Sui mang lại những đặc tính vượt trội cho NFT so với các nền tảng khác:
+
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafybeia7pxl223dtm74kgl3o2xhc4vcvfc5kxosb2nmsrcycdyiyn5kfiu)
+
+
+* NFT hoàn toàn on-chain (Fully On-chain): Trên nhiều blockchain hiện nay, metadata của NFT (hình ảnh, attributes) thường phải lưu trữ off-chain qua IPFS hoặc thậm chí trên server tập trung. Điều này tiềm ẩn rủi ro: dữ liệu có thể bị mất, bị thay đổi hoặc phụ thuộc vào một bên thứ ba. Ngược lại, với Sui, toàn bộ dữ liệu của NFT được lưu trực tiếp on-chain
+* NFT động (Dynamic NFT): NFT không còn là một tài sản tĩnh như JPEG, mà có thể tiến hóa theo thời gian. Chúng thay đổi dựa trên các tương tác hoặc trạng thái trong ứng dụng.
+* NFT có khả năng tổng hợp (Composable NFT): Vì tất cả trên Sui đều là object, nên các NFT có thể sở hữu và tương tác với các NFT khác. Điều này mở ra khái niệm NFT lồng ghép:
+
+Ví dụ: Một nhân vật game (object cha) có thể trang bị thanh kiếm (object con) và áo giáp (object con khác).
+
+Chính nhờ 2 đặc tính dynamic và composable nên NFT trên Sui mở ra một playground hoàn toàn mới. Thay vì chỉ đơn giản là một hình ảnh sưu tầm, giờ đây NFT có thể tương tác, phát triển, kết hợp thành những hệ thống phức tạp hơn rất nhiều.
+
+
+Tiếp theo là **Sự khác biệt trong cách lưu trữ dữ liệu NFT giữa Sui và các blockchain truyền thống**
+
+
+
+## **Sự khác biệt trong cách lưu trữ dữ liệu NFT giữa Sui và các blockchain truyền thống**
+
+Dưới đây là minh họa dưới đây cho thấy sự khác biệt cốt lõi trong cách các blockchain xử lý dữ liệu NFT (Token không thể thay thế). Điểm khác biệt quan trọng nằm ở vị trí lưu trữ metadata  bao gồm tên, mô tả, hình ảnh và các thuộc tính đặc trưng (ví dụ: Skin color, Hair color).
+
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafybeiafai4ajyvtzxhs27vlvh4reza67ummiva34jzzhptiwewfml4bry)
+
+Ở blockchain như Ethereum, việc lưu trữ dữ liệu trực tiếp trên chuỗi (on-chain) có chi phí rất cao do phí gas. Vậy nên ở On-chain, smart contract chỉ lưu trữ thông tin cơ bản nhất, chẳng hạn như token ID và địa chỉ ví chủ sở hữu. : Phần lớn metadata chi tiết (hình ảnh, thuộc tính…) được lưu bên ngoài blockchain (off-chain), thông qua máy chủ tập trung (AWS, Google Cloud) hoặc hệ thống lưu trữ phi tập trung như IPFS. : Cách tiếp cận này phụ thuộc hoàn toàn vào hệ thống lưu trữ ngoài. Nếu server ngừng hoạt động hoặc dữ liệu bị mất, NFT trên chuỗi chỉ còn lại một ID trống rỗng.
+
+Còn với Sui, nhờ chi phí lưu trữ thấp hơn và mô hình thiết kế tối ưu, Sui cho phép đưa toàn bộ metadata của NFT (bao gồm cả chi tiết như Skin color, Hair color) trực tiếp lên blockchain. : Các smart contract khác có thể đọc và khai thác trực tiếp metadata on-chain, tạo điều kiện cho các NFT động (dynamic NFT) có khả năng thay đổi hoặc phát triển theo thời gian.
+
+
+## Vậy Sui move support dev như thế nào? 
+
+
+Để hiểu cách một Object trên Sui được hình thành mình sẽ lấy ví dụ một NFT "cốc cà phê".  Ví dụ, chúng ta định nghĩa một struct `Coffee` với thuộc tính `strength` (độ đậm) và gắn ability `key` để nó có thể tồn tại độc lập như một tài sản trên chuỗi. Toàn bộ định nghĩa này nằm trong một module, chẳng hạn `suispresso`.
+
+```
+// Trong module 'suispresso'
+public struct Coffee has key {
+    id: UID,
+    strength: u8,
+    // ... các thuộc tính khác
+}
+```
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafybeidbpxfzmlb5dnv3uyj4ocm5led5cmuo3ikq6uhpqsbfpt5hw7dxfu)
+
+
+
+
+
+### 1. Cấu trúc Module
+
+Mọi Move module đều tuân theo cấu trúc cơ bản này:
+
+```move
+module <address>::<module_name> {
+    // Module contents
+}
+```
+
+### 2. Định nghĩa Object
+
+Objects trong Move được định nghĩa bằng structs với các capabilities cụ thể:
+
+```move
+public struct HelloWorldObject has key, store {
+    id: UID,
+    text: String
+}
+```
+
+**Giải thích Capabilities:**
+- `key`: Cho phép struct được sử dụng như một object
+- `store`: Cho phép struct được lưu trữ trong global storage
+
+### 3. UID (Unique Identifier)
+
+Mọi object trong Sui cần một unique identifier:
+
+```move
+id: object::new(ctx)
+```
+
+## 🛠️ Triển khai từng bước
+
+### Bước 1: Tạo cấu trúc Module
+
+Tạo file mới `sources/hello_world.move`:
+
+```move
+module hello_world::hello_world {
+    use std::string::{Self, String};
+    use sui::object::{Self, UID};
+    use sui::transfer;
+    use sui::tx_context::{Self, TxContext};
+
+    /// A simple object that contains a greeting message
+    public struct HelloWorldObject has key, store {
+        id: UID,
+        text: String
+    }
+
+    /// Initialize the module by creating and transferring a HelloWorldObject
+    fun init(ctx: &mut TxContext) {
+        let object = HelloWorldObject {
+            id: object::new(ctx),
+            text: string::utf8(b"Hello World!")
+        };
+        transfer::public_transfer(object, tx_context::sender(ctx));
+    }
+
+    /// Public function to mint a new HelloWorldObject
+    public entry fun mint(ctx: &mut TxContext) {
+        let object = HelloWorldObject {
+            id: object::new(ctx),
+            text: string::utf8(b"Hello World!")
+        };
+        transfer::public_transfer(object, tx_context::sender(ctx));
+    }
+}
+```
+
+### Step 2: Configure the Package
+
+Create `Move.toml`:
+
+```toml
+[package]
+name = "hello_world"
+version = "1.0.0"
+edition = "2024.beta"
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
+
+[addresses]
+hello_world = "0x0"
+```
+
+### Step 3: Test Your Module
+
+Create `tests/hello_world_tests.move`:
+
+```move
+#[test_only]
+module hello_world::hello_world_tests {
+    use std::string;
+    use sui::test_scenario::{Self, Scenario};
+    use hello_world::hello_world::{Self, HelloWorldObject};
+
+    #[test]
+    fun test_mint() {
+        let scenario = test_scenario::begin(@0x1);
+        
+        // Test minting a new HelloWorldObject
+        test_scenario::next_tx(&mut scenario, @0x1);
+        hello_world::mint(test_scenario::ctx(&mut scenario));
+        
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_object_structure() {
+        let scenario = test_scenario::begin(@0x1);
+        
+        test_scenario::next_tx(&mut scenario, @0x1);
+        hello_world::mint(test_scenario::ctx(&mut scenario));
+        
+        // Verify the object was created with correct text
+        let object = test_scenario::take_from_sender<HelloWorldObject>(&scenario);
+        assert!(string::bytes(&object.text) == b"Hello World!", 0);
+        
+        test_scenario::return_to_sender(&scenario, object);
+        test_scenario::end(scenario);
+    }
+}
+```
+
+## 🚀 Building and Testing
+
+### Run Tests
+```bash
+sui move test
+```
+
+### Build the Package
+```bash
+sui move build
+```
+
+### Deploy to Testnet
+```bash
+sui client publish --gas-budget 10000000
+```
+
+## 📖 Code Explanation
+
+### Imports
+```move
+use std::string::{Self, String};
+use sui::object::{Self, UID};
+use sui::transfer;
+use sui::tx_context::{Self, TxContext};
+```
+
+- `string`: For string operations
+- `object`: For object creation and UID
+- `transfer`: For transferring objects
+- `tx_context`: For transaction context
+
+### Object Creation
+```move
+let object = HelloWorldObject {
+    id: object::new(ctx),
+    text: string::utf8(b"Hello World!")
+};
+```
+
+- `object::new(ctx)`: Creates a new UID
+- `string::utf8(b"Hello World!")`: Converts bytes to string
+
+### Object Transfer
+```move
+transfer::public_transfer(object, tx_context::sender(ctx));
+```
+
+- Transfers the object to the transaction sender
+
+## 🎯 Bài tập
+
+1. **Modify the greeting**: Thay đổi dòng chữ "Hello World!" thành "Hello, [Tên của bạn]!"
+
+💡 *Hint:* Trong struct `HelloWorldObject`, giá trị chuỗi được khởi tạo bằng `string::utf8(...)`. Bạn chỉ cần thay đổi nội dung chuỗi trong `init` hoặc `mint` function.  
+
+2. **Add a counter**: Tạo một object có khả năng đếm số lần nó được truy cập
+
+💡 *Hint:* Thêm một trường `counter: u64` vào struct. Trong mỗi lần gọi hàm public (ví dụ: `increment`), bạn tăng giá trị `counter` bằng toán tử `+ 1`.  
+
+```move
+
+public fun increment_counter(obj: &mut HelloWorldObject) {
+       obj.counter = obj.counter + 1;
+   }
+```
+
+3. **Custom greeting**: Viết thêm một hàm cho phép nhập vào một lời chào tuỳ chỉnh. 
+
+
+
+```
+💡 *Hint:* Thêm một hàm public entry fun mint_custom(message: vector<u8>, ctx: &mut TxContext). Dùng string::utf8(message) để tạo String từ input. Sau đó khởi tạo HelloWorldObject với text = message.
+```
+
+
+
+
+
+
+
+## 📚 Additional Resources
+
+- [Sui Object Model](https://docs.sui.io/concepts/object-model)
+- [Move Capabilities](https://docs.sui.io/concepts/object-model#capabilities)
+- [Sui Transfer](https://docs.sui.io/concepts/object-model#transfer)
+
+## ➡️ Next Steps??

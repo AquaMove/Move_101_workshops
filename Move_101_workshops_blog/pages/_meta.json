@@ -1,0 +1,14 @@
+{
+  "index": "Introduction",
+  "modules": "Modules",
+  "about": {
+    "title": "About",
+    "type": "page"
+  },
+  "contact": {
+    "title": "Contact ↗",
+    "type": "page",
+    "href": "https://x.com/firstmoversvn",
+    "newWindow": true
+  }
+}
