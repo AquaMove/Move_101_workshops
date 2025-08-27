@@ -1,230 +1,342 @@
 ---
-title: 'Module 2: Basic Types and Functions'
-description: 'Learn Move data types, functions, and control flow'
+title: 'Module 2: smart contract'
+description: 'Learn Advanced Move concepts, Sui-specific features, framework integration, and practical projects'
 ---
 
-# Module 2: Basic Types and Functions
-
-In this module, you'll explore Move's basic data types, functions, and control flow through a calculator application. You'll learn how to work with primitive types, implement functions with different visibility levels, and handle errors.
+# Module 2:
 
 ## 🎯 Learning Objectives
 
-By the end of this module, you will be able to:
+- Learn the difference between Objects and Resources in Move
+- Understand how Sui’s object model powers on-chain assets
+- Practice writing a basic fungible token module
+- Create and mint a simple non-fungible token (NFT)
 
-- Master Move primitive types (u64, vector, etc.)
-- Understand function signatures and visibility
-- Implement error handling with `abort`
-- Work with mutable and immutable references
-- Use vector operations effectively
+## Traditional Storage vs. Sui Novel Storage (review)
 
-## 📚 Key Concepts
+Trong các hệ thống blockchain, cách mà state được lưu trữ và xử lý là yếu tố then chốt cho hiệu năng.
 
-### 1. Basic Types
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreihflfr7iexamxaesvhqo73jlsn36coiht5hg54fd7abx42wcapbum) 
 
-Move provides several primitive types:
+### Traditional Storage
 
-```move
-u64: unsigned 64-bit integer
-vector<T>: dynamic array
-String: UTF-8 string
-bool: boolean value
-address: 32-byte address
+- Xem toàn bộ dữ liệu như một **single big state/resource**.
+- Yêu cầu **sequential processing** (xử lý tuần tự)
+- Giới hạn khả năng mở rộng khi cập nhật một global state duy nhất
+
+### Sui Novel Storage
+- Chia nhỏ state thành những **smaller, isolated pieces**
+- Cho phép **parallel processing** (xử lý song song)
+- Cải thiện đáng kể khả năng mở rộng và hiệu suất bằng cách xử lý các object độc lập
+cùng lúc
+
+Đây là một trong những điểm đột phá khiến Sui khác biệt so với kiến trúc blockchain truyền thống.
+
+
+## Sui Native Features
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreifjwcyzydsub5kvsc5wjy2gf3pa72lw3o3jkyswri4bruu4jvseli)
+
+Sui không chỉ dừng lại ở việc cải tiến kiến trúc lưu trữ, mà còn cung cấp những native features độc đáo, giúp developer và end-user trải nghiệm Web3 một cách liền mạch:
+
+
+### zkLogin
+
+Cho phép onboard người dùng Web2 sang Web3 thông qua social login quen thuộc: Google, Facebook, Twitter,… Giúp loại bỏ rào cản lớn khi người dùng mới tiếp cận blockchain
+
+### Kiosk
+
+* Là bộ công cụ thương mại onchain ngay trong Sui, ví dụ: marketplace cho NFT hoặc digital assets.
+* Kiosk hỗ trợ royalty enforcement (tự động chia thưởng cho creator) và creator-defined commerce (creator toàn quyền định nghĩa cơ chế bán).
+* Đây là tính năng quan trọng cho gaming, NFT, và nội dung số.
+
+### Deepbook
+
+Một Central Limit Order Book DEX kết hợp với liquidity platform chạy trực tiếp trên Sui.
+
+![](https://cdn.prod.website-files.com/673b99b8fb4fad140abdb7ff/683183cd4d8cdbc235e7f349_image%20(50).png)
+
+### Sponsored Transaction
+
+* Cho phép người khác tài trợ phí gas cho user.
+* Developer hoặc dự án có thể “sponsor” giao dịch cho user để giảm friction, giúp onboarding người mới dễ dàng hơn.
+* Đặc biệt hữu ích trong gaming và dApp hướng người dùng phổ thông.
+
+### Storage Rebate
+
+* Khi một object bị xoá khỏi storage, người dùng sẽ được hoàn lại một phần phí storage.
+* Điều này khuyến khích việc sử dụng tài nguyên hợp lý và giảm lãng phí.
+
+
+### Programmable Transaction Block (PTB)
+
+* Cho phép client kết hợp nhiều giao dịch nhỏ thành một transaction block duy nhất.
+* Giúp tăng hiệu suất, giảm phí, và mở đường cho nhiều use case phức tạp: batch payment, multi-sig, hay contract orchestration.
+
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafybeih62g4k3crzrorlzag6tjl2mgswi5ks53oeohxbp2tbfppvetdnmu)
+
+
+
+## What is object in traditional programming? 
+
+Trong lập trình truyền thống, tụi mình có khái niệm gọi là object kiểu như một cái hộp chứa cả dữ liệu và hành vi. Ví dụ, bạn có thể code ra một `con chó` như một object. Nó sẽ có:
+* Dữ liệu (attributes): như màu lông, cân nặng, kích thước,…
+* Hành vi (methods): như sủa, chạy, vẫy đuôi,…
+
+Và một khi bạn đã tạo ra cái object này rồi thì Bạn có thể di chuyển nó qua lại trong chương trình hoặc dùng đi dùng lại, sao chép (clone) ra bao nhiêu bản tùy ý 🎭 hoặc xoá nó nếu muốn ❌. Và thậm chí có thể lắp ghép nhiều object với nhau thành hệ thống lớn hơn như Lego 🧩
+
+
+Nhưng với **Move**, ngôn ngữ này đưa ra một khái niệm đặc biệt hơn là **resource**. Resource cũng là một cấu trúc dữ liệu, nhưng mang theo giá trị thật chẳng hạn như token hay tài sản số. Chính vì vậy, resource không thể bị đối xử tùy tiện như object. Bạn có thể move nó, tức là chuyển quyền sở hữu hoặc thay đổi vị trí của nó. Nhưng bạn không thể copy, không thể xóa, và cũng không thể phá hủy.
+
+Sự khác biệt này làm cho resource trở thành một mô hình dữ liệu cực kỳ phù hợp để quản lý tài sản trên blockchain vì nó **đảm bảo tài sản luôn duy nhất**, không bị nhân bản vô tội vạ, và không thể biến mất ngoài ý muốn.
+
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreiel3nvih3vthsquhqes3nw6bcvhzidjjd4hmxvpf7nz62qvr5h2qa)
+
+
+##  Resource ownership and Object in Sui Move
+
+Trong **Aptos Move**, khi muốn biểu diễn tài sản, ta dùng resource. Chỉ những struct được đánh dấu bằng từ khóa key mới có thể trở thành resource, và chúng sẽ được gắn với địa chỉ của người sở hữu thông qua toán tử move_to. Điều này đảm bảo mỗi resource có chủ rõ ràng, tránh bị sao chép hoặc hủy bỏ tuỳ tiện.
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreicpts3ox7okdizkxmkv2uah4ljgxjbogq5za336qc34soqobq5p3a)
+
+Nhưng trong **Sui Move**, khái niệm được phát triển thêm một bước. Không chỉ có key, mà để một struct được coi là object, nó cần có trường đầu tiên là một UID, một định danh toàn cục duy nhất. Nhờ đó, mỗi object trong Sui đều có một danh tính riêng biệt trên toàn hệ thống. Điểm khác biệt lớn ở đây là: thay vì move_to, Sui sử dụng transfer để di chuyển object, đồng thời lưu trữ nó trong cơ sở dữ liệu (`rocksdb`). Điều này loại bỏ khái niệm “resource toàn cục” như trong Aptos, mà thay vào đó, mỗi object được quản lý thông qua UID của chính nó.
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafybeieaq6s3otrb24dlmnjpvcvx6eoxbpytwurnf6wraqsqqr2ybsmhae)
+
+Vì vậy, resource trong Sui đảm bảo sự khan hiếm và tính duy nhất, còn object trở thành đơn vị dữ liệu cốt lõi. Một object có thể được:ß
+* **Sở hữu (chỉ một chủ duy nhất),**
+* **Chia sẻ (nhiều người có thể cùng truy cập),**
+* **Hoặc bất biến (immutable, ai cũng đọc được nhưng không ai sửa).**
+
+Bên cạnh đó, Sui còn hỗ trợ mutable object, tức là object mà chủ sở hữu có thể thay đổi nội dung hoặc chuyển nhượng cho người khác. Mỗi object đều có global uniqueness, một UID toàn cầu, bảo đảm không có sự trùng lặp.
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreiep63fmeff3qlyib6x6cflmcptw77ih6u3zycc2t5lpqgarj7aaqm)
+
+
+
+## Resources trong Sui
+
+Resource ở Sui thực chất là một special type of object. Nó thường dùng để biểu diễn:
+
+* Fungible tokens (như SUI, hay token tuỳ chỉnh).
+* Asset representation (các loại tài sản số, quyền hạn).
+
+Ví dụ: `coin::create_currency` tạo ra một resource TreasuryCap, cho phép mint/burn coin.
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreicmrw2rso5aqj2ychx23yqkz3fqkutr3wiuaalmtjhvvtxtwyjqku)
+
+
+
+## Account Model
+
+Ở Aptos, account là trung tâm vì mỗi account chứa resource và module. 
+
+Nhưng trong Sui, không có account theo nghĩa truyền thống. Đơn vị nhỏ nhất của Sui là **object**. Tất cả object mới tạo mặc định nằm ở địa chỉ 0x0, và khi build package, địa chỉ này sẽ được thay thế bằng package address thực sự. Nói cách khác, Aptos dựa trên **account-based model**, còn Sui chọn **object-based model**. Đây là điểm khác biệt then chốt, khiến cách ta suy nghĩ và lập trình trên Sui hoàn toàn mới so với blockchain truyền thống.
+
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafybeifptcleld2o46kpuaw5pikyfrptrc44pqsm6gv5ok7bn2o4mbxd4e)
+
+
+
+## Cấu trúc cơ bản của một Move Project
+
+Khi bắt đầu với Move, dự án luôn có cấu trúc quen thuộc gồm 3 phần chính:
+
+* Move.toml: đây là file cấu hình gốc, chứa thông tin về tên dự án, dependencies, địa chỉ được publish. Bạn có thể hình dung nó giống như `package.json` trong NodeJS hoặc `Cargo.toml` trong Rust. Đây là nơi định nghĩa dự án của bạn “là ai và cần gì”.
+* sources/: thư mục chứa code chính, nơi bạn viết các smart contract. Mỗi module Move thường được định nghĩa trong một file riêng với đuôi `.move`.
+* tests/: thư mục chứa các file test, thường kết thúc bằng hậu tố `_test.move`. Đây là nơi bạn viết unit test để đảm bảo contract hoạt động như mong đợi.
+
+Cấu trúc này giúp dev dễ quản lý: tách biệt giữa logic chính và phần kiểm thử, đồng thời dự án có tính module hoá cao.
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreiao6muvruuxfa523ejshricoefxk4sufu43icafp4pen2shqfn3ju)
+
+
+
+## Expressive Types
+
+Điểm mạnh của Move là **biểu diễn tài sản và quyền sở hữu ngay trong type system.** Ví dụ, bạn viết một hàm buy_coffee với tham số `Coin<SUI>`. Chỉ cần nhìn vào type, ta đã biết hàm này yêu cầu thanh toán bằng token SUI. Tức là, type trong Move không chỉ mang ý nghĩa kỹ thuật, mà còn mang cả logic kinh tế và luật của hệ thống. Điều này khác hẳn với các ngôn ngữ truyền thống, nơi type chỉ mô tả dữ liệu `(string, int, float…).`
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreidhgwr7vtytew7nni3ewf2n35r3novhz3jcyqovkjxnjgce3njaxu)
+
+
+Move vay mượn ngữ nghĩa từ Rust để quản lý tài nguyên an toàn:
+
+* `&` để đọc (reference read).
+* `&mut` để ghi, thay đổi dữ liệu (mutable reference).
+
+Và khái niệm ownership để đảm bảo mỗi giá trị chỉ có một chủ duy nhất, tránh rủi ro “double spend” hay sao chép ngoài ý muốn.
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreigb7gry3k6dvjfo37w2x2t5l2cnfxxshzsb5d4x4iunk2vr24ibb4)
+
+Ví dụ: nếu bạn có một thẻ thành viên (MembershipCard), bạn có thể cho phép đọc thông tin `(&)`, hoặc cho phép cập nhật điểm thưởng `(&mut)`. Nhờ đó, Move kiểm soát chặt chẽ ai được đọc, ai được sửa, ai sở hữu tất cả ngay ở mức ngôn ngữ.
+
+
+## Modular Functionality
+
+Move cho phép bạn định nghĩa kiểu dữ liệu riêng (user-defined types). Điều này rất mạnh bạn có thể tạo một MembershipCard với số điểm tích luỹ, rồi định nghĩa getter/setter để đọc và cập nhật điểm. Không chỉ vậy, bạn có thể import module này sang module khác và tái sử dụng nó.
+
+Tư duy này biến Move thành một ngôn ngữ module-first là mỗi module giống như một “hộp chức năng” có thể ghép lại với nhau để tạo nên hệ thống phức tạp hơn.
+
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreigv3bb4srb5mf56dm75minhpnoqbekjv5oct3d24kp56kurh54try)
+
+
+##  Kiểu dữ liệu trong Move (Move Data Types)
+
+Để xây dựng smart contract trong Move, trước tiên ta phải hiểu về kiểu dữ liệu (data types) vì chúng là nền tảng để mô tả tài sản, quyền sở hữu và hành vi. Move cung cấp cả **primitive types (cơ bản)** và **collection types (tổ hợp)**.
+
+###  Primitive Types
+
+* Số nguyên không dấu (unsigned integers): u8, u64, u128. Đây là các kiểu số cơ bản để biểu diễn giá trị số như số lượng, điểm thưởng, hay số dư.
+* bool: chỉ nhận giá trị true/false, thường dùng để biểu diễn trạng thái (ví dụ thẻ đang kích hoạt hay không).
+* address: đại diện cho địa chỉ trên blockchain, giống như danh tính của một người dùng hay smart contract.
+
+###  Collection Types
+	
+* `vector<T>`: một danh sách có thể chứa nhiều phần tử cùng loại. Đây là kiểu dữ liệu rất hữu ích khi cần lưu danh sách giao dịch, lịch sử đơn hàng, hoặc tập hợp token.
+* `User-defined structs`: đây là điểm mạnh của Move. Bạn có thể tự định nghĩa struct riêng để biểu diễn tài sản phức tạp.
+
+
+Ví dụ: MembershipCard
+
 ```
-
-### 2. Function Types
-
-Move functions have different visibility levels:
-
-```move
-public entry fun: Callable from transactions
-public fun: Callable from other modules  
-fun: Private function (module-only)
-```
-
-### 3. Error Handling
-
-Move uses `abort` for error handling:
-
-```move
-const EInvalidOperation: u64 = 0;
-
-if (divisor == 0) {
-    abort EInvalidOperation
-};
-```
-
-## 🛠️ Step-by-Step Implementation
-
-### Step 1: Create the Calculator Module
-
-Create `sources/basic_types.move`:
-
-```move
-module basic_types::basic_types {
-    use std::string::{Self, String};
-    use sui::object::{Self, UID};
-    use sui::transfer;
-    use sui::tx_context::{Self, TxContext};
-
-    /// A simple calculator object that demonstrates basic types and functions
-    public struct Calculator has key, store {
-        id: UID,
-        value: u64,
-        history: vector<u64>
-    }
-
-    /// Error codes
-    const EInvalidOperation: u64 = 0;
-    const EOverflow: u64 = 1;
-
-    /// Create a new calculator with initial value
-    public entry fun create_calculator(initial_value: u64, ctx: &mut TxContext) {
-        let calculator = Calculator {
-            id: object::new(ctx),
-            value: initial_value,
-            history: vector::empty()
-        };
-        transfer::public_transfer(calculator, tx_context::sender(ctx));
-    }
-
-    /// Add a number to the current value
-    public entry fun add(calculator: &mut Calculator, amount: u64) {
-        let new_value = calculator.value + amount;
-        vector::push_back(&mut calculator.history, calculator.value);
-        calculator.value = new_value;
-    }
-
-    /// Subtract a number from the current value
-    public entry fun subtract(calculator: &mut Calculator, amount: u64) {
-        if (calculator.value < amount) {
-            abort EInvalidOperation
-        };
-        let new_value = calculator.value - amount;
-        vector::push_back(&mut calculator.history, calculator.value);
-        calculator.value = new_value;
-    }
-
-    /// Multiply the current value by a number
-    public entry fun multiply(calculator: &mut Calculator, factor: u64) {
-        let new_value = calculator.value * factor;
-        vector::push_back(&mut calculator.history, calculator.value);
-        calculator.value = new_value;
-    }
-
-    /// Divide the current value by a number
-    public entry fun divide(calculator: &mut Calculator, divisor: u64) {
-        if (divisor == 0) {
-            abort EInvalidOperation
-        };
-        let new_value = calculator.value / divisor;
-        vector::push_back(&mut calculator.history, calculator.value);
-        calculator.value = new_value;
-    }
-
-    /// Get the current value
-    public fun get_value(calculator: &Calculator): u64 {
-        calculator.value
-    }
-
-    /// Get the calculation history
-    public fun get_history(calculator: &Calculator): vector<u64> {
-        calculator.history
-    }
+public struct MembershipCard has key {
+    id: UID,            // định danh duy nhất cho object
+    points: u64,        // số điểm tích luỹ
+    owner: address,     // địa chỉ người sở hữu
+    name: String,       // tên chủ thẻ
+    active: bool,       // trạng thái (đang hoạt động hay không)
+    orders: vector<ID>, // lịch sử đơn hàng
 }
 ```
 
-### Step 2: Configure the Package
+Ở đây, MembershipCard chính là một struct do người dùng định nghĩa. Nó kết hợp nhiều kiểu dữ liệu:
 
-Create `Move.toml`:
+* u64 để đếm điểm thưởng,
+* address để lưu chủ sở hữu,
+* bool để kiểm soát trạng thái,
+* `vector<ID>` để quản lý lịch sử giao dịch.
 
-```toml
-[package]
-name = "basic_types"
-version = "1.0.0"
-edition = "2024.beta"
+Nhờ vậy, MembershipCard không chỉ là một khối dữ liệu, mà trở thành một loại **tài sản số hoàn chỉnh**, có thể di chuyển, sở hữu, và sử dụng trong hệ thống.
 
-[dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreif7fs5ebf5brw54cy4xtawtqjwof4fehdbdlrpxh2rocn4o5byyr4)
 
-[addresses]
-basic_types = "0x0"
+
+
+## Ownership Models 
+
+Trong Sui, mọi dữ liệu quan trọng đều được gói trong **object**, và mỗi object lại mang một mô hình ownership tức là cách mà object đó được sở hữu, quản lý và truy cập. Có ba mô hình chính:
+
+1.	Exclusive Ownership (Address-owned objects)
+2.	Shared Ownership (Shared objects)
+3.	Immutable Objects (Frozen objects)
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreigh6i3oudrfphml5jegczdgwfieqbzdx4lkfhsxjsokca3y5qcsua)
+
+Chúng ta sẽ đi lần lượt từng loại để thấy được sự khác biệt.
+
+
+### Address-owned Objects
+
+Đây là loại đơn giản nhất vì một object được gắn trực tiếp với một địa chỉ cụ thể (32-byte address).
+
+* Chỉ người sở hữu mới có quyền dùng object đó trong giao dịch.
+* Quyền kiểm soát được runtime của Sui kiểm tra tự động.
+
+Ví dụ với Coin object. Nếu `0xA11CE` sở hữu một Coin 100 SUI, thì chỉ chính `0xA11CE` mới có quyền chi tiêu nó. Khi muốn trả 100 SUI cho `0xB0B`, Alice phải gọi hàm `transfer::public_transfer`. Sau khi giao dịch hoàn tất, Coin sẽ đổi chủ, từ `0xA11CE` sang `0xB0B`.
+
+Điều đặc biệt là nhờ cơ chế fast-path consensus của Sui, giao dịch loại này thường có độ trễ rất thấp (finality ~500ms).
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreibyovzyiwsv64mopwosxapd7z4vfrlgbesz4dtlayyzh5pdly5auy)
+
+
+###  Shared Objects - Chia sẻ cho nhiều người
+
+Không phải object nào cũng chỉ có một chủ. Có những tình huống cần nhiều bên cùng tham gia, ví dụ:
+
+* Một cửa hàng cần quản lý **CashRegister** (két tiền), nơi nhiều nhân viên cùng truy cập.
+* Một **DEX** (sàn giao dịch phi tập trung) cho phép nhiều người nạp/rút tài sản từ cùng một liquidity pool.
+
+Đó là lúc dùng shared objects:
+
+* Được khởi tạo bằng `transfer::share_object`.
+* Sau khi trở thành shared, ai cũng có thể bắt đầu giao dịch liên quan đến object này.
+* Tuy nhiên, quyền truy cập chi tiết (ai được đọc, ai được ghi) phụ thuộc vào logic mà lập trình viên quy định trong module.
+
+Shared objects mang tính cộng tác, nhưng vì có nhiều bên tham gia, nên mọi thay đổi phải thông qua consensus đầy đủ của mạng Sui, không thể xử lý theo fast-path như address-owned objects.
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreic4k7bmblzref26ddhgbbr66er3k4olmzzbdh7iu62hnj37lweozi)
+
+
+###  Immutable Objects
+Loại cuối cùng là immutable objects (hay frozen objects).
+	
+* Đây là những object không thể thay đổi, không thể xoá, cũng không thể chuyển nhượng.
+* Một khi đã đóng băng (transfer::public_freeze_object), thao tác này không thể đảo ngược.
+* Immutable object không có chủ, ai cũng có thể truy cập, nhưng chỉ ở chế độ đọc.
+
+Ví dụ: một **package code** sau khi publish thường được đóng băng, để đảm bảo tính ổn định và niềm tin cho toàn hệ thống.
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreiacsqng2y2ixsii3ibjernzzl7ep2djmhvk5zgehyfszxiq2w5haa)
+
+
+
+##  Composability trong Sui: Wrapped Objects & Dynamic Fields
+
+Một trong những điểm mạnh của Sui là object có thể lồng ghép (composable) với nhau để tạo nên những cấu trúc phức tạp. Thay vì chỉ có những object độc lập, ta có thể “bọc” (wrap) object này vào object khác, hoặc mở rộng object bằng dynamic fields.
+
+### Wrapped Objects
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafkreiabwptihp3duye35mlwqzt5hrrmo6lk4wc6s3p5hudnxgcr6uyeoy)
+
+Bạn có thể đặt một object như **Sugar** hoặc **Straw** vào bên trong object khác, ví dụ **Coffee**.
+
+* Object được wrap phải có ability store.
+* Khi Coffee bị hủy, toàn bộ wrapped object bên trong nó cũng bị hủy.
+* Nếu muốn linh hoạt hơn (ví dụ tuỳ chọn có straw hay không), ta có thể wrap qua Option hoặc vector.
+
 ```
-
-## 📖 Code Explanation
-
-### Struct Definition
-```move
-public struct Calculator has key, store {
+public struct Coffee has key, store {
     id: UID,
-    value: u64,
-    history: vector<u64>
+    sugar: Sugar,
+    accessories: Option<Straw>
 }
 ```
 
-- `value`: Stores the current calculator value
-- `history`: Vector storing previous values
+Ở đây, một cốc Coffee có thể chứa Sugar (bắt buộc) và Straw (tùy chọn). Điều này cho phép ta mô hình hóa tài sản phức tạp theo cách trực quan: Coffee không chỉ là Coffee, mà là Coffee + thành phần bên trong nó.
 
-### Error Constants
-```move
-const EInvalidOperation: u64 = 0;
-const EOverflow: u64 = 1;
+###  Dynamic Fields
+
+![](https://amethyst-fascinating-tortoise-826.mypinata.cloud/ipfs/bafybeicccrnlbtqd4esszxzl7s2of4pilbmy2b65tvvpomqwkzh3exs6cu)
+
+
+> Nhưng nếu bạn muốn Coffee có thể chứa nhiều loại thành phần khác nhau, không cố định từ trước thì sao?
+
+Đây là lúc dynamic fields xuất hiện:
+* Không bị giới hạn bởi struct declaration.
+* Có thể thêm vô số dynamic fields vào một object.
+* Không làm tăng kích thước object, do được quản lý như key-value mapping.
+* Các collection quan trọng như Table và Bag trong Sui đều dựa trên dynamic fields.
+
+
+```
+public fun add_sugar(coffee: &mut Coffee, quantity: u64) {
+    dynamic_field::add(&mut coffee.id, b"sugar", quantity);
+}
 ```
 
-- Define error codes for different failure scenarios
+Ở đây, ta có thể thêm “đường” vào Coffee bất kỳ lúc nào, không cần định nghĩa sẵn trong struct. Tương tự, ta có thể thêm một Straw object bằng dynamic_object_field.
 
-### Function Parameters
-```move
-public entry fun add(calculator: &mut Calculator, amount: u64)
-```
 
-- `&mut Calculator`: Mutable reference to calculator object
-- `amount: u64`: Immutable parameter
+## Fungible Tokens on Sui
 
-### Vector Operations
-```move
-vector::push_back(&mut calculator.history, calculator.value);
-```
 
-- `vector::empty()`: Create empty vector
-- `vector::push_back()`: Add element to end
-- `vector::length()`: Get vector size
 
-## 🚀 Building and Testing
 
-### Run Tests
-```bash
-sui move test
-```
 
-### Build the Package
-```bash
-sui move build
-```
-
-### Deploy to Testnet
-```bash
-sui client publish --gas-budget 10000000
-```
-
-## 🎯 Exercises
-
-1. **Add more operations**: Implement power, square root, or modulo operations
-2. **History management**: Add functions to clear history or get history length
-3. **Validation**: Add bounds checking to prevent overflow
-4. **Statistics**: Calculate average, min, max from history
-
-## 🔗 Source Code
-
-View the complete source code: [Module 2 Source](https://github.com/your-username/move-101-workshops-source/tree/main/module-2-basic-types)
-
-## 📚 Additional Resources
-
-- [Move Primitive Types](https://move-book.com/primitive-types.html)
-- [Move Functions](https://move-book.com/functions.html)
-- [Move Error Handling](https://move-book.com/error-handling.html)
 
 ## ➡️ Next Steps
-
-Great job! You've learned about basic types and functions. Ready to explore access control and capabilities?
 
 **[Continue to Module 3: Capabilities and Access Control →](/modules/module-3)**
