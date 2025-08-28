@@ -1,0 +1,157 @@
+---
+title: 'Module 4: Writing Smart Contracts on Sui - Part 2'
+description: Writing Smart Contracts on Sui - Part '
+---
+
+# Module 4: Writing Smart Contracts on Sui - Part 2
+
+![](https://eistekpnpuvuygeoeyfq.supabase.co/storage/v1/object/public/first_movers/move101/SCR-20250828-obeq.png)
+
+
+
+## learning objectives
+
+Trong những phần trước, chúng ta đã tìm hiểu nền tảng về Move và cách xây dựng smart contract đơn giản. Sang Module 4 – Part 2, nội dung đi sâu hơn: cách viết contract nâng cao, quản lý nhiều module cùng lúc, và bảo đảm tính an toàn cho logic on-chain.
+
+- Khám phá các mẫu (pattern) smart contract nâng cao trong Move
+- Học cách tích hợp nhiều module và quản lý các tương tác phức tạp giữa object
+- Hiểu các yếu tố bảo mật và thực hành những nguyên tắc tốt nhất khi viết logic on-chain
+- Thực hành qua các bài tập hướng dẫn để củng cố kiến thức
+
+
+## Key Feature of Move: Object of Digital Assets
+
+Khi nói về Move, điều làm nó khác biệt so với Solidity hay nhiều ngôn ngữ smart contract khác chính là cách Move định nghĩa và bảo vệ tài sản số. Trong Move, mọi tài sản đều là object/resource.
+
+![](https://eistekpnpuvuygeoeyfq.supabase.co/storage/v1/object/public/first_movers/move101/acc9d24eba8097aae29e7d7654768adc5f5b9d4508d3681e1b1968bb5f95dce6.png)
+
+### Asset là user-defined type
+
+Trong Move, tài sản không bị giới hạn trong những “token ERC-20/EIP chuẩn” như Ethereum. Thay vào đó, developer có thể định nghĩa bất kỳ loại asset nào với cấu trúc riêng. Ví dụ:
+
+```rust
+public struct Ticket has key {
+    id: UID,
+    owner: address
+}
+```
+
+Ngoài ra, Move còn hỗ trợ nhiều loại tài sản phức tạp hơn: vé sự kiện, quyền truy cập, NFT game item, và nhiều hơn nữa.
+
+###  Asset có thể đi qua function & object
+
+Khác với dữ liệu thông thường, resource trong Move có thể:
+
+- Được truyền làm tham số (arguments) vào hàm,
+- Được trả về như kết quả của hàm,
+- Và có thể lồng trong object khác.
+
+Ví dụ trong slide: Alice gửi `Coin<T>` vào một contract splitter `0x123::splitter`. Hợp đồng này chia coin thành nhiều phần và phân phối lại cho Bob, Cindy, David và Emma.
+
+
+Một vấn đề lớn trong smart contract truyền thống là khi asset “chạy qua” nhiều hợp đồng, việc đảm bảo tính toàn vẹn rất khó khăn.
+Move giải quyết bằng resource safety – tức là ngôn ngữ đảm bảo:
+
+- Resource không thể bị copy bừa bãi,
+- Không thể bị drop ngoài ý muốn,
+- Và không thể bị “double-spend”.
+
+
+## Diem-Move vs. Sui-Move: Account-centric vs. Object-centric( nôi dung này đang review lại hôm đó)
+
+
+Tuy nhiên, một điểm khác biệt quan trọng giữa Diem Move (bản gốc) và Sui Move là cách quản lý tài sản.
+
+- Diem Move: Mọi thứ đều gắn chặt vào account. Account giống như một “container” chứa các CoinStore, TokenStore, hay bất kỳ resource nào.
+- Sui Move: Tài sản là object độc lập, có ID riêng và được gắn chủ sở hữu. Chủ sở hữu có thể là một address (user), một object khác, hoặc hệ thống.
+
+![](https://eistekpnpuvuygeoeyfq.supabase.co/storage/v1/object/public/first_movers/move101/890ef05c5287a72e2da0ac9ce5509c5e1fa2ce211ae0a61eb918c68a25e53ba3.png)
+
+### Diem Move – Account-centric
+
+Mỗi account giống như một “kho chứa state”. Ví dụ, account 0x123 có thể chứa `CoinStore<A>`, `CoinStore<B>`, `CoinStore<C>`, và `CoinStore<D>`. Tuy nhiên, mọi thứ đều tập trung trong cùng một account state. Gây data contention (tranh chấp dữ liệu) khi nhiều giao dịch cùng đụng vào account đó.
+
+### Sui Move – Object-centric
+
+Trong Sui, tài sản là object với owner riêng. Mỗi asset là một object độc lập, có thể track riêng. Rất phù hợp cho mô hình song song (parallel execution) của Sui.
+
+
+
+## Chuyển tài sản trong Sui = đổi chủ sở hữu
+
+![](https://eistekpnpuvuygeoeyfq.supabase.co/storage/v1/object/public/first_movers/move101/c649d44c3185ea4a4379a873c396d9cee3ee3b7a5e0eee73113f581b184a0eeb.png)
+
+Trong Sui, transfer thực chất là đổi owner của object.
+
+- Ví dụ: `Coin<B>` từ `0x123` → `0x456`.
+- Object ID không đổi, chỉ owner thay đổi.
+
+
+Một ví dụ đặc biệt rõ: fungible token (`Coin`).
+
+- Alice có `Coin<A>` với giá trị 6, chuyển cho Bob.
+- Cindy có `Coin<A>` với giá trị 10, cũng chuyển cho Bob.
+- Kết quả: Bob giữ nhiều `Coin<A>` object khác nhau (có thể merge sau).
+
+Vì mỗi Coin là một object riêng, các transaction này không tranh chấp (no data race). Hệ thống có thể xử lý song song mà không cần lock toàn bộ account như Diem/Ethereum.
+
+![](https://eistekpnpuvuygeoeyfq.supabase.co/storage/v1/object/public/first_movers/move101/646cb8a3de0929a9ef16f5b31ef72b1b6870aff0d8c5e4a08413eb6110c4e397.png)
+
+Hoặc như một quá trình của **Whole Process: Split – Transfer – Merge**. Coin không chỉ là số trong account mà là object độc lập có giá trị riêng.
+
+Ví dụ:
+
+- Alice có một `Coin<SUI>` trị giá 12.
+- Cô split ra thành hai coin (6 và 6).
+- Một coin (6) được transfer cho Bob.
+- Bob merge coin (6) này với coin của anh ấy (8) để tạo coin mới (14).
+
+![](https://eistekpnpuvuygeoeyfq.supabase.co/storage/v1/object/public/first_movers/move101/453f824d14506e8ea428da32be5bf27b0cc7a94468de9e2a721cc33b6c7e9ffc.png)
+
+
+##  Quy tắc Ownership trong Sui
+
+Mỗi object trên Sui đều phải có một ownership model:
+
+- **Immutable Object**: không ai thay đổi được (ví dụ: Move package).
+- **Owned Object**: chỉ owner đọc/ghi được (ví dụ: coin, NFT).
+- **Shared Object**: ai cũng có thể tương tác (ví dụ: pool, vault, AMM).
+
+![](https://eistekpnpuvuygeoeyfq.supabase.co/storage/v1/object/public/first_movers/move101/5b39bd20651f1785e0b667cbee112da08589fb38cfea6c925250c82d1e39894a.png)
+
+
+## Abilities trong Move
+
+Mỗi struct trong Move có thể khai báo abilities cho biết được phép làm gì.
+
+- **Key**: có thể được lưu trực tiếp on-chain (trở thành một object).
+- **Store**: có thể được chứa trong object khác.
+- **Copy**: có thể copy (sao chép).
+- **Drop**: có thể bị hủy bỏ.
+
+```rust
+public struct Coin<phantom T> has key, store {
+    id: UID,
+    value: u64,
+}
+```
+
+> Coin có key (được lưu on-chain) và store (có thể nằm trong object khác). Nhưng coin không có copy hay drop, đảm bảo không thể sao chép hoặc hủy bừa bãi.
+
+![](https://eistekpnpuvuygeoeyfq.supabase.co/storage/v1/object/public/first_movers/move101/c4b248f4b11a059c6ebc986ec0c819064c99b3426d5310bc23a0bc8de5b7743c.png)
+
+## Kết hợp & Loại trừ Abilities
+
+Một số combination được cho phép, một số thì không được:
+
+- copy + drop → cho log event (replicable + destructible).
+- key + store → cho tài sản có thể chuyển nhượng toàn cầu.
+- key + drop hoặc key + copy → sẽ không được (mutual exclusion).
+
+→ Đảm bảo sự nhất quán: object toàn cầu (có key) không thể vừa bị hủy/clone.
+
+![](https://eistekpnpuvuygeoeyfq.supabase.co/storage/v1/object/public/first_movers/move101/d40adfe4f5486ef31844ab459bcccd1e670b9c0194c06cb00ca1a3267b4d4fa2.png)
+
+
+
+
