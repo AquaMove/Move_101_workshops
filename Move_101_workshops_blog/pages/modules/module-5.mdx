@@ -24,22 +24,262 @@ dApp Kit là một bộ React components, hooks, và utilities giúp bạn xây 
 - Customizable Hooks – Linh hoạt mở rộng, tạo ra components riêng từ low-level hooks.
 
 
+### How to install dApp kit
 
+Để bắt đầu sử dụng dApp Kit, bạn cần cài đặt các packages cần thiết.
 
+Có 2 cách phổ biến để cài đặt:
 
-## Front-end project part
+1. cài bằng npm 
 
-Bạn có thể dùng framework `Next.js` để tạo project.
-
-```bash
-npx create-next-app@latest
+```shell
+npm i --save @mysten/dapp-kit @mysten/sui @tanstack/react-query
 ```
-Nhập project name và chọn configuration theo custom (theo prompt hiện ra). Sau đó chờ quá trình installation hoàn tất.
+
+Cài bằng yarn
+
+```shell
+yarn add @mysten/dapp-kit @mysten/sui @tanstack/react-query
+```
+
+Ngoài ra, dApp Kit cũng hỗ trợ cài đặt bằng pnpm và bun. Tuỳ vào workflow/project của bạn, hãy chọn công cụ package manager phù hợp.
+
+
+
+### How to initialize a front-end template
+
+Khi khởi tạo project, bạn có thể chọn giữa 2 template sau:
+
+1. react-client-dapp: Một template React đơn giản, có sẵn ví dụ hiển thị danh sách assets trong wallet.
+2. react-e2e-counter: Một template phức tạp hơn (end-to-end) kết hợp Move code với một UI đếm đơn giản (counter UI).
+
+
+
+
+###  Network Configuration với @mysten/dapp-kit và @mysten/sui/client
+
+Đầu tiên, cần config network connection và Provider components trong file entry của ứng dụng (ví dụ: App.js hoặc App.tsx).
+
+```tsx
+import { createNetworkConfig, SuiClientProvider, WalletProvider } from '@mysten/dapp-kit';
+import { getFullnodeUrl } from '@mysten/sui/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const { networkConfig } = createNetworkConfig({
+    localnet: { url: getFullnodeUrl('localnet') },
+    mainnet: { url: getFullnodeUrl('mainnet') },
+});
+
+const queryClient = new QueryClient();
+
+function App() {
+    return (
+        <QueryClientProvider client={queryClient}>
+            <SuiClientProvider networks={networkConfig} defaultNetwork="localnet">
+                <WalletProvider>
+                    <YourApp />
+                </WalletProvider>
+            </SuiClientProvider>
+        </QueryClientProvider>
+    );
+}
+
+export default App;
+```
+
+Để config network connections trong app, bạn sẽ dùng hai package chính:
+* `@mysten/sui/client` → cung cấp function `getFullnodeUrl`.
+* `@mysten/dapp-kit` → cung cấp function `createNetworkConfig` và các hooks hỗ trợ.
+
+
+Với cấu hình này, app của bạn có thể Dễ dàng chuyển đổi giữa nhiều Sui networks (localnet, devnet, testnet, mainnet). 	Kết hợp cùng Provider (SuiClientProvider) để tự động kết nối đúng network khi dApp khởi chạy.
+
+```tsx
+import { getFullnodeUrl } from "@mysten/sui/client";
+import { createNetworkConfig } from "@mysten/dapp-kit";
+
+const { networkConfig, useNetworkVariable, useNetworkVariables } =
+  createNetworkConfig({
+    devnet: {
+      url: getFullnodeUrl("devnet"),
+    },
+    testnet: {
+      url: getFullnodeUrl("testnet"),
+    },
+    mainnet: {
+      url: getFullnodeUrl("mainnet"),
+    },
+  });
+
+export { useNetworkVariable, useNetworkVariables, networkConfig };
+```
+
+### Wallet Status Component
+
+```tsx
+import { useCurrentAccount } from "@mysten/dapp-kit";
+import { Container, Flex, Heading, Text } from "@radix-ui/themes";
+import { OwnedObjects } from "./OwnedObjects";
+
+export function WalletStatus() {
+  const account = useCurrentAccount();
+
+  return (
+    <Container my="2">
+      <Heading mb="2">Wallet Status</Heading>
+
+      {account ? (
+        <Flex direction="column">
+          <Text>Wallet connected</Text>
+          <Text>Address: {account.address}</Text>
+        </Flex>
+      ) : (
+        <Text>Wallet not connected</Text>
+      )}
+      <OwnedObjects />
+    </Container>
+  );
+}
+
+```
+
+
+
+`WalletStatus` là một React component hiển thị trạng thái kết nối ví và danh sách objects thuộc ví đang kết nối.
+
+* `useCurrentAccount`: Import từ `@mysten/dapp-kit`. Là hook dùng để lấy thông tin wallet account hiện tại đang kết nối.
+
+* Conditional rendering:
+    * Nếu account tồn tại → hiển thị "Wallet connected" và địa chỉ ví.
+    * Nếu account không tồn tại → hiển thị "Wallet not connected".
+
+
+
+
+### Address query component
+
+```tsx
+import { useCurrentAccount, useSuiClientQuery } from "@mysten/dapp-kit";
+import { Flex, Heading, Text } from "@radix-ui/themes";
+
+export function OwnedObjects() {
+  const account = useCurrentAccount();
+  const { data, isPending, error } = useSuiClientQuery(
+    "getOwnedObjects",
+    {
+      owner: account?.address as string,
+    },
+    {
+      enabled: !!account,
+    },
+  );
+
+  if (!account) {
+    return;
+  }
+
+  if (error) {
+    return <Flex>Error: {error.message}</Flex>;
+  }
+
+  if (isPending || !data) {
+    return <Flex>Loading...</Flex>;
+  }
+
+  return (
+    <Flex direction="column" my="2">
+      {data.data.length === 0 ? (
+        <Text>No objects owned by the connected wallet</Text>
+      ) : (
+        <Heading size="4">Objects owned by the connected wallet</Heading>
+      )}
+      {data.data.map((object) => (
+        <Flex key={object.data?.objectId}>
+          <Text>Object ID: {object.data?.objectId}</Text>
+        </Flex>
+      ))}
+    </Flex>
+  );
+}
+```
+
+Component này phù hợp để render danh sách tài sản hoặc objects on-chain mà ví user sở hữu ngay sau khi kết nối.
+
+`OwnedObjects` là một React component dùng để hiển thị các objects thuộc ví hiện tại đang kết nối.
+
+* Conditional Rendering
+    * Nếu chưa có account kết nối → component return null.
+    * Nếu query bị lỗi → hiển thị error message.
+    * Nếu query đang loading hoặc chưa có dữ liệu → hiển thị "Loading...".
+    * Nếu query thành công → hiển thị danh sách objects.
+    * Nếu không có objects → hiển thị thông báo "No objects found".
+
+
+### Split Coin tách SUI từ gas/coin lớn
+
+Khi bạn cần tách một lượng SUI nhỏ (ví dụ để thanh toán phí hay gửi tip), có thể dùng `tx.splitCoins` để chia từ coin gas/coin lớn hơn.
+
+```ts
+// Số lượng cần tách theo đơn vị "một SUI" * precision
+// Lưu ý: (ví dụ) nếu Sui.decimal = 9 thì 1 SUI = 10 ** 9
+const suiAmount = 1 * 10 ** Sui.decimal;
+
+// Tách từ gas hoặc từ coin nguồn
+const [suiCoin] = tx.splitCoins(tx.gas, [suiAmount]);
+
+// suiCoin lúc này là một coin object mới mang giá trị suiAmount
+```
+
+Bạn có thể tách nhiều “mệnh giá” cùng lúc bằng cách truyền nhiều phần tử trong mảng.
+
+* Nếu không muốn dùng tx.gas, có thể truyền coin object nguồn khác: `tx.splitCoins(tx.object(sourceCoinId), [amount])`.
+* Bạn có thể tách nhiều “mệnh giá” cùng lúc bằng cách truyền nhiều phần tử trong mảng.
+
+
+###  Merge Coin – gộp nhiều coin lẻ
+
+Trong Sui, người dùng thường có nhiều coin lẻ; mergeCoins giúp gộp lại thành 1 coin để dễ quản lý.
+
+```ts
+// Gộp coinObjectId_2, coinObjectId_3 vào coinObjectId (đích)
+tx.mergeCoins(
+  tx.object(coinObjectId),
+  [tx.object(coinObjectId_2), tx.object(coinObjectId_3)]
+);
+```
+
+Hãy chọn một “coin đích” làm nơi merge; các coin còn lại sẽ bị “đổ” vào coin này. Merge trước khi thực hiện giao dịch khác có thể giúp giảm số object và đơn giản hóa logic.
+
+### Ký & Gửi Transaction qua wallet (plugin signature)
+
+`@mysten/dapp-kit` cung cấp hook `useSignAndExecuteTransaction` giúp bạn ký và gửi transaction với ví người dùng.
+
+```ts
+// Khai báo hook
+const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+
+// Thực thi transaction (đã build sẵn "tx")
+signAndExecuteTransaction(
+  { transaction: tx },
+  {
+    onSuccess: (result) => {
+      console.log(result.digest); // digest của tx trên chain
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+  }
+);
+```
+
+Trước khi mutate, hãy build tx đầy đủ (split/merge/moveCall…).
 
 
 
 
 
 
+## Advanced 
+> How to build a SUI Move dApp based on zkLogin? 👀
 
 
