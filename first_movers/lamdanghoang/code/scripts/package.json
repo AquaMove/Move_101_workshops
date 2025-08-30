@@ -1,0 +1,19 @@
+{
+  "name": "sui-typescript-exercise",
+  "version": "1.0.0",
+  "description": "Sui TypeScript exercise for generating keypairs and interacting with contracts",
+  "main": "exercise.ts",
+  "scripts": {
+    "start": "npx tsx exercise.ts",
+    "test": "npx tsx exercise.ts"
+  },
+  "dependencies": {
+    "@mysten/sui": "^1.37.4",
+    "tsx": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "type": "module"
+}
