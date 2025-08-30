@@ -17,3 +17,5 @@ Telegram: @danghlam
 -   [x] Call publish_blog to create a blog post: E1QV8aztMDHyWvb8voYfgHxsxtNNToE4TW34NKeECdUb
 -   [x] Call like_blog to like a blog post: 5cULm4DEQ2M72pcGqmNNXVeenr8xWigvwnjGsGrrL51p
 -   [x] Add `edit_content` function to update blog content: G9JwnjCeKbESzzdnhPZMK7n6YP6fZpp6PP9GLGkdCXcC
+
+# Demo website: https://sui-blog-app.netlify.app/
