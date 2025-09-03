@@ -1,0 +1,21 @@
+{
+  "routes": {
+    "/*": "/index.html"
+  },
+  "headers": {
+    "/*": {
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      "Access-Control-Allow-Origin": "*",
+      "X-Frame-Options": "SAMEORIGIN",
+      "X-Content-Type-Options": "nosniff"
+    }
+  },
+  "metadata": {
+    "site_name": "Sui Blog DApp - Mainnet",
+    "description": "A decentralized blog application built on the Sui blockchain. Create, edit, delete, and like blog posts with full wallet integration. Deployed on Sui Mainnet via Walrus.",
+    "project_url": "https://github.com/Huc06/sui-blog-frontend",
+    "creator": "Huc06",
+    "tags": ["sui", "blockchain", "blog", "dapp", "walrus", "mainnet"],
+    "object_id": "0xa68d55049e9bdce3c67f7c8673a7ab41893195d9d8bd4a8dc89e3f9b67001e29"
+  }
+}
