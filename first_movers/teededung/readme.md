@@ -14,6 +14,10 @@
 
 https://testnet.suivision.xyz/txblock/9iD6QR6q2jBDASM6YaqPeoa9otwzx96y849YnYvT7kr9
 
+# Demo page:
+
+https://sui-wheel.netlify.app/
+
 ## Deployment and Usage Examples
 
 ### Publish Wheel Contract
